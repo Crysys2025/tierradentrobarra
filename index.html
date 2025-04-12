@@ -1,0 +1,227 @@
+
+<link href='https://fonts.googleapis.com/css?family=Poppins:400,400i,500,500i,600,600i,700' rel='stylesheet'/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" media="all" rel="stylesheet"/>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'></script>
+
+<style>
+body {background:#fff;font-size:8px;color:#cb442c;font-family:'Poppins', sans-serif;margin:0px}
+/* Bloque Player */
+#player {display:flex;margin:0px;color:#fff}
+#radio {float:left;width:30%;height:50px;align-items:center;display:flex;background-color:#1cbb9b;color:#37485d}
+.play-pause {margin-left:15px;width:35px}
+.play-pause span{margin-top:2px;font-size:30px;cursor:pointer;}
+.volume-control {margin-left:20px}
+.fa-volume-up {font-size:20px}
+
+/* Barra Volumen Chrome */
+input[type=range] {-webkit-appearance:none;background:transparent;}
+input[type=range]:focus {outline:none;}
+input[type=range]::-webkit-slider-runnable-track {margin-top:-15px;height:5px;cursor:pointer;animate:0.2s;box-shadow:0px 0px 0px #cb442c, 0px 0px 0px #cb442c;background:#cb442c;}
+input[type=range]::-webkit-slider-thumb {box-shadow:0px 0px 0px #ffffff, 0px 0px 0px #000000;height:20px;width:20px;border-radius:50%;background:#ffffff;cursor:pointer;-webkit-appearance:none;margin-top:-8px;}
+#metadata {display:flex;width:100%;align-items:center;background-color:#f35c3c;font-size:17px;font-weight:bold;text-transform:uppercase;padding: 0px 10px}
+.meta-img {background-color:#37485d;width:50px;height:50px}
+
+@media screen and (min-width: 0px) and (max-width: 600px)  {
+#player {display:grid}
+#radio {width:100%}
+#metadata {width:96%}
+} 
+</style>
+
+
+
+<!-- Configuracion Radial -->
+<script>
+stream = "https://stream.zeno.fm/xv084ye33mruv"; 
+server = "xv084ye33mruv"; 
+plataforma = "zeno";
+</script>
+
+
+
+<!-- Reproductor Html -->
+<div id="player">
+<div id="radio"><img class="meta-img" src="https://i.imgur.com/hGpn7Gh.png" id="portada"/>
+<div class="play-pause">
+<span id="plax" class="fa fa-play" onclick="togglePlay()"></span>
+</div>
+<div class="volume-control"><span class="fa fa-volume-up"></span><input type="range" id="volume" step="1" min="0" max="100" value="100"></div>
+</div>
+<div id="metadata"><marquee><span id="cancion">TIERRADENTRO STEREO 92.7 EN VIVO</span></marquee></div>
+</div>
+
+
+<script>
+//Reproductor javascript
+window.onload = function() {(new Player).play()};
+var audio = new Audio(stream);
+
+function Player() {
+this.play = function() {audio.play()}, this.pause = function() {audio.pause()}
+}
+
+function togglePlay() {audio.paused ? (audio.load(), audio.play()) : audio.pause() }
+
+audio.onplay = function() {
+document.getElementById('plax').className = "fa fa-pause";
+}
+
+audio.onpause = function() {
+document.getElementById('plax').className = "fa fa-play";
+} 
+
+function intToDecimal(e) {return e / 100}
+document.getElementById("volume").oninput = function() {
+audio.volume = intToDecimal(this.value)
+}
+
+audio.onerror = function(){alert("Radio sin señal o falta de pago")}
+</script>
+
+
+
+
+<script>
+//PACK DE METADATAS by Angel System
+function metadatas() {
+	
+// API ONLINEBOX
+if (plataforma === "onbox") {
+$.getJSON ("https://scraper2.onlineradiobox.com/"+server+"?ra="+Math.random(), function(data){
+xtit = data.title; xtit = xtit.replace("EDITADA", "");
+myArray = xtit.split(" - ");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+});
+}
+
+
+// API RADIOPE
+if (plataforma === "radio") {
+$.getJSON ("https://api.webrad.io/data/playlist/"+server+"?ra="+Math.random(), function(data){
+xart = data.result[0].track_artist;
+xcan = data.result[0].track_title;
+xtit = xart+" - "+xcan;
+portadax(xart);
+$("#cancion").text(xtit);
+});
+}
+
+
+// API ICECAST
+if (plataforma === "icecast") {
+$.getJSON (server+"/status-json.xsl?ra="+Math.random(), function(data){
+xtit = data.icestats.source.yp_currently_playing;
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+});
+}
+
+
+// API ZENO FM
+if (plataforma === "zeno") {
+$.getJSON ("https://host.chapinradios.com/archivos/api.php?url=https://zenoplay.zenomedia.com/api/zenofm/nowplaying/"+server+"?ra="+Math.random(), function(data){
+xtit = data.title;
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+});
+}
+
+
+// API SONIC
+if (plataforma === "sonic") {
+$.getJSON (server, function(data){
+xtit = data.title; xtit = xtit.replace("Now On Air:", "");
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+});
+}
+
+
+// API SHOUTCAST TIPO STATS
+if (plataforma === "shoutcast-stats") {
+$.ajax ({ url:"https://host.chapinradios.com/archivos/api.php?url="+server+"/stats", type:"GET", dataType:"xml", crossDomain:!0, async:true, success:function(data){
+xtit = $(data).find('SONGTITLE').text();
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+}
+});
+}
+
+// API SHOUTCAST TIPO STATS-JSON
+if (plataforma === "shoutcast-stats-json") {
+$.getJSON ("https://host.chapinradios.com/archivos/api.php?url="+server+"/stats?json=1", function(data){
+xtit = data.songtitle;
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+});
+}
+
+// API SHOUTCAST TIPO CURRENTSONG
+if (plataforma === "shoutcast-currentsong") {
+$.ajax ({url:"https://host.chapinradios.com/archivos/api.php?url="+server+"/currentsong", type:"GET", dataType:"text", crossDomain:!0, async:true, success:function(data){
+xtit = data;
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+}
+});
+}
+
+
+//API TRITON
+if (plataforma === "triton") {
+$.ajax ({ url:"https://np.tritondigital.com/public/nowplaying?mountName="+server+"&numberToFetch=1&eventType=track", type:"GET", dataType:"xml", crossDomain:!0, async:true, success:function(data){
+xart = $(data).find("nowplaying-info").find("property[name='track_artist_name']").text();
+xcan = $(data).find("nowplaying-info").find("property[name='cue_title']").text();
+xtit = xart+" - "+xcan;
+portadax(xart);
+$("#cancion").text(xtit);
+}
+});
+}
+
+
+// API MDSTRM
+if (plataforma === "mdstrm") {
+$.getJSON ("https://platform.s-mdstrm.com/events/currentSong/"+server+".json?ra="+Math.random() , function(data){
+xart = data.artist_code;
+xcan = data.song_code;
+xtit = xart+" - "+xcan;
+portadax(xart);
+$("#cancion").text(xtit);
+});
+}
+
+
+// API TIPO CORS
+if (plataforma === "cors") {
+$.ajax ({ url:"https://www.whateverorigin.org/get?url="+server, type:"GET", dataType:"text", crossDomain:!0, async:true, success:function(data){
+var json = $.parseJSON(data);
+xtit = json.contents;
+myArray = xtit.split("-");
+portadax(myArray[0]);
+$("#cancion").text(xtit);
+}
+});
+}
+
+
+} setTimeout(metadatas, 500); setInterval(metadatas, 50000);
+
+
+// API BUSCAR PORTADA O COVER
+function portadax(name) {
+url = "https://itunes.apple.com/search?term=="+name+"&media=music&limit=1&ra="+Math.random();
+$.getJSON (url, function (datax) {
+imx = datax.results[0].artworkUrl100;
+//portada = imx.replace("100x100bb", "1500x1500bb");
+$("#portada").attr('src', imx);
+});
+}
+</script>
